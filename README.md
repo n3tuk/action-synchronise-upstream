@@ -67,32 +67,29 @@ jobs:
     name: Template Synchronise
     runs-on: ubuntu-latest
     env:
-      SYNCHRONISER_TOKEN:
-        { { secrets.SYNCHRONISER_TOKEN || secrets.GITHUB_TOKEN } }
+      SYNCHRONISER_TOKEN: ${{ secrets.SYNCHRONISER_TOKEN || secrets.GITHUB_TOKEN } }
     steps:
-      - name: Checkout the Repository
+      - name: Checkout the repository
         uses: actions/checkout@v3
         with:
-          token: { { env.SYNCHRONISER_TOKEN } }
+          token: ${{ env.SYNCHRONISER_TOKEN }}
 
       - name: Render and synchronise the template repository
         uses: n3tuk/action-synchronise-upstream@v1
         with:
-          github-token: { { env.SYNCHRONISER_TOKEN } }
-          template-repository: n3tuk/template-terraform-module
-          template-render: true
-          pr-labels: release/skip,dependencies
+          token: ${{ env.SYNCHRONISER_TOKEN }}
+          repository: n3tuk/template-terraform-module
+          labels: release/skip,dependencies
 ```
 
 ## Inputs
 
-| Variable              | Description                                                                                                                                                     | Required | Default                               |
-| :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------: | :------------------------------------ |
-| `github-token`        | The GitHub Token to fetch the template repository and to make changes against the local repository. This is typically set to `secrets.GITHUB_TOKEN`.            |  `true`  |                                       |
-| `template-repository` | The owner/name (i.e. n3tuk/template-terraform-module) of the GitHub repository used to provide the cookiecutter templates for this local repository.            |  `true`  |                                       |
-| `template-branch`     | The name of the branch to use in the GitHub repository used to provide the cookiecutter templates for the local repository.                                     | `false`  | `main`                                |
-| `template-render`     | Render (`true`) or skip (`false`) the cookiecutter templates when processing for changes in the template repository or local configuration.                     | `false`  | `true`                                |
-| `target-branch`       | The target branch of the local repository to raise the pull request against whem procesing for changes in the template repository or local configuration.       | `false`  | `main`                                |
-| `pr-branch-prefix`    | The prefix for the name of the pull request branch created by this GitHub Action when processing for changes in the template repository or local configuration. | `false`  | `chore/synchronise-upstream`          |
-| `pr-title`            | The title of the pull request set by this GitHub Action when processing for changes in the template repository or local configuration.                          | `false`  | Synchronise Upstream Template Changes |
-| `pr-labels`           | A comma-separated list of pull request labels to add by this GitHub Action on any created pull request.                                                         | `false`  | `[]`                                  |
+| Variable     | Description                                                                                                                                                     | Required | Default                               |
+| :----------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------: | :------------------------------------ |
+| `token`      | The GitHub Token to fetch the template repository and to make changes against the local repository. This is typically set to `secrets.GITHUB_TOKEN`.            |  `true`  |                                       |
+| `repository` | The owner/name (i.e. n3tuk/template-terraform-module) of the GitHub repository used to provide the cookiecutter templates for this local repository.            |  `true`  |                                       |
+| `branch`     | The name of the branch to use in the GitHub repository used to provide the cookiecutter templates for the local repository.                                     | `false`  | `main`                                |
+| `target`     | The target branch of the local repository to raise the pull request against whem procesing for changes in the template repository or local configuration.       | `false`  | `main`                                |
+| `prefix`     | The prefix for the name of the pull request branch created by this GitHub Action when processing for changes in the template repository or local configuration. | `false`  | `chore/synchronise-upstream/`         |
+| `title`      | The title of the pull request set by this GitHub Action when processing for changes in the template repository or local configuration.                          | `false`  | Synchronise Upstream Template Changes |
+| `labels`     | A comma-separated list of pull request labels to add by this GitHub Action on any created pull request.                                                         | `false`  | `[]`                                  |

@@ -41,10 +41,13 @@ repos:
     hooks:
       - id: script-must-have-extension
         name: Check non-executable shell scripts end with .sh extension
+        exclude: '^tests/'
       - id: script-must-not-have-extension
         name: Check executable shell scripts to not have extension
+        exclude: '^tests/'
       - id: shellcheck
         name: Check shell scripts with shellcheck
+        exclude: '^tests/'
       - id: shfmt
         name: Check shell scripts formtting with shfmt
         args: ["-i", "2", "-bn", "-ci", "-sr"]

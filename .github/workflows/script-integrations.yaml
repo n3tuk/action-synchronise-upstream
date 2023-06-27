@@ -1,0 +1,107 @@
+---
+name: Script Integrations
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  issues: write
+  checks: write
+  pull-requests: write
+
+jobs:
+  continuous-integration:
+    name: Continuous Integration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Set up BATS v1.9.0
+        uses: mig4/setup-bats@v1
+        with:
+          bats-version: 1.9.0
+
+      - name: Set up BATS libraries
+        uses: brokenpip3/setup-bats-libs@0.1.0
+        with:
+          support-install: true
+          assert-install: true
+          file-install: true
+          detik-install: false
+
+      - name: Set up the BATS reporting location
+        id: logs
+        run: |
+          mkdir -p logs
+          LOG_DIR=$(mktemp --directory --tmpdir=logs XXX-bats-results)
+          echo "dir=${LOG_DIR}" >> $GITHUB_OUTPUT
+
+      - name: Test the shell scripts
+        env:
+          BATS_LIB_PATH: lib:/usr/lib
+        run: |-
+          bats --verbose-run --formatter junit \
+            tests/
+
+      - name: Create the shell scripts test reports
+        env:
+          BATS_LIB_PATH: lib:/usr/lib
+        run: |-
+          bats --verbose-run --formatter junit tests/ \
+            > ${{ steps.logs.outputs.dir }}/bats.xml
+
+      - name: Publish the BATS summary
+        id: junit-summary
+        uses: phoenix-actions/test-reporting@v12
+        if: always()
+        with:
+          name: BATS Summary
+          output-to: step-summary
+          working-directory: ${{ steps.logs.outputs.dir }}
+          path: bats.xml
+          reporter: java-junit
+
+      - name: Publish the BATS results
+        id: junit-report
+        uses: phoenix-actions/test-reporting@v12
+        if: always()
+        with:
+          name: 'Scripts Integrations / BATS Results'
+          output-to: checks
+          working-directory: ${{ steps.logs.outputs.dir }}
+          path: bats.xml
+          reporter: java-junit
+
+      - name: Add link for BATS results
+        if: always()
+        run: |
+          echo "::notice::BATS Report is available at ${{ steps.junit-report.outputs.runHtmlUrl }}"
+          echo "See the full BATS Results Report at [GitHub Actions / Scripts Integrations / BATS Results](${{ steps.junit-report.outputs.runHtmlUrl }})" >> $GITHUB_STEP_SUMMARY
+
+      - name: Save the BATS logs and reports as an artifact
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: BATS Logs and Reports
+          path: ${{ steps.logs.outputs.dir }}
+
+  linting:
+    name: Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Lint the shell scripts
+        uses: luizm/action-sh-checker@v0.7.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHFMT_OPTS: -i 2 -bn -ci -sr
+        with:
+          sh_checker_comment: true

@@ -1,0 +1,54 @@
+---
+version: 3
+interval: 1000ms
+output: group
+
+vars:
+  bin_name: pull-requester
+
+tasks:
+  default:
+    cmds:
+      - task: clean
+      - task: test
+
+  test:
+    desc: Run the unit tests for the scripts
+    aliases:
+      - t
+    sources:
+      - "bin/*"
+      - "lib/*.sh"
+      - "tests/*.bats"
+      - "tests/helpers/*.bash"
+    env:
+      BATS_LIB_PATH: lib:/usr/lib
+    cmds:
+      # Enter key to the same pane as it is running in so that it exits
+      # scrolling mode and starts refreshing the screen as new tests are run
+      - cmd: |-
+          test -n "$TMUX_PANE" && tmux send-keys -t $TMUX_PANE Enter
+        silent: true
+      - cmd: |-
+          bats --formatter pretty tests/
+
+  fmt:
+    desc: Properly format all the bash and bats files
+    aliases:
+      - f
+    sources:
+      - "bin/*"
+      - "lib/*.sh"
+      - "tests/*.bats"
+    cmds:
+      - cmd: |-
+          shfmt -i 2 -bn -ci -sr --diff \
+            bin/* lib/*.sh tests/*.bats
+
+  clean:
+    desc: Clean up temporary files and locations
+    aliases:
+      - c
+    run: once
+    cmds:
+      - cmd: rm -rf .task

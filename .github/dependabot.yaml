@@ -21,24 +21,6 @@ updates:
       - release/chore
       - priority/normal
 
-  - package-ecosystem: docker
-    directory: /
-    schedule:
-      interval: weekly
-      day: friday
-      time: "18:00"
-      timezone: "Europe/London"
-    commit-message:
-      prefix: docker
-      include: scope
-    reviewers:
-      - n3tuk/admin
-    labels:
-      - type/dependencies
-      - update/docker
-      - release/chore
-      - priority/normal
-
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -1,0 +1,103 @@
+---
+name: synchronise-upstream
+description: |-
+  A GitHub Action for running synchronising template and/or configuration
+  changes from an upstream template repository into a downstream repository
+  in the n3tuk Organisation, through a pull request.
+
+inputs:
+  token:
+    description: |
+      The GitHub Token to fetch the template repository and to make changes
+      against the local repository. This is typically set to
+      `secrets.GITHUB_TOKEN`.
+    required: true
+  repository:
+    description: |
+      The owner/name (i.e. n3tuk/template-terraform-module) of the GitHub
+      repository used to provide the cookiecutter templates for this local
+      repository.
+    required: true
+  branch:
+    description: |
+      [optional] The name of the branch to use in the GitHub repository used to
+      provide the cookiecutter templates for the local repository.
+    default: 'main'
+  target:
+    description: |
+      [optional] The target branch of the local repository to raise the Pull
+      Request against whem procesing for changes in the template repository or
+      local configuration.
+    default: 'main'
+  prefix:
+    description: |
+      [optional] The prefix for the name of the pull request branch created by
+      this GitHub Action when processing for changes in the template repository
+      or local configuration.
+    default: 'chore/synchronise-upstream/'
+  title:
+    description: |
+      [optional] The title of the pull request set by this GitHub Action when
+      processing for changes in the template repository or local configuration.
+    default: 'Synchronise Upstream Template Changes'
+  labels:
+    description: |
+      [optional] A comma-separated list of pull request labels to add by this
+      GitHub Action on any created pull request.
+    default: ""
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Install Dependencies
+      shell: bash
+      run: pip install -r requirements.txt
+    - name: Prepare the local environment
+      id: prepare
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+        REPOSITORY: ${{ inputs.repository }}
+        BRANCH: ${{ inputs.branch }}
+        TARGET: ${{ inputs.target }}
+        PREFIX: ${{ inputs.prefix }}
+      run: |-
+        ${{ github.action_path }}/bin/prepare
+    - name: Update files in the downstream repository
+      shell: bash
+      env:
+        TEMPLATES: ${{ steps.prepare.outputs.templates }}
+      run: |-
+        ${{ github.action_path }}/bin/updates
+    - name: Remove files in the downstream repository
+      shell: bash
+      env:
+        TEMPLATES: ${{ steps.prepare.outputs.templates }}
+      run: |-
+        ${{ github.action_path }}/bin/removes
+    - name: Render the upstream templates onto the downstream repository
+      shell: bash
+      env:
+        TEMPLATES: ${{ steps.prepare.outputs.templates }}
+      run: |-
+        ${{ github.action_path }}/bin/render
+    - name: Commit and raise pull request for downstream repository
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+        REPOSITORY: ${{ inputs.repository }}
+        COMMIT: ${{ steps.prepare.outputs.template-sha }}
+        TARGET: ${{ inputs.target}}
+        PREFIX: ${{ inputs.prefix }}
+        TITLE: ${{ inputs.title }}
+        LABELS: ${{ inputs.labels }}
+      run: |-
+        ${{ github.action_path }}/bin/commit
+
+branding:
+  icon: file-text
+  color: gray-dark

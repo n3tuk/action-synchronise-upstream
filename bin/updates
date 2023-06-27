@@ -1,0 +1,26 @@
+#! /usr/bin/env bash
+# shellcheck disable=SC1091 # Using dynamic lookups for sources files
+
+source "$(dirname "${0}")/../lib/common.sh"
+source "$(dirname "${0}")/../lib/updates.sh"
+
+# Iterate though the cookiecutter.json file in the upstream template repository
+# and look for matching files to move them to a new name/location in the
+# downstream repository
+
+# Check we have everything we need in the environment
+check_variables TEMPLATES
+check_commands jq
+
+start_group "Checking for files to move"
+
+if [[ -s "${TEMPLATES}/cookiecutter.json" ]]; then
+  show_debug "Processing cookiecutter.json"
+
+  get_updates cookiecutter.json \
+    | while read -r action; do
+      do_move "${action}"
+    done
+fi
+
+end_group
