@@ -1,0 +1,39 @@
+---
+name: Pull Requester
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+      - labeled
+      - unlabeled
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  pull-requester:
+    runs-on: ubuntu-latest
+    name: Check the Pull Request
+
+    concurrency:
+      # Ensure that only a single concurrent job is run for any Pull Requester
+      # event on any one pull request (or github.event.number here), and bias
+      # that to the most recently started job, which will likely have the most
+      # complete information to process the metadata with.
+      group: pull-requester-${{ github.event.number }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Pull Requester
+        # Target main here as it's easier than trying to deal with future
+        # versions that this pull request will become
+        uses: n3tuk/action-pull-requester@v1

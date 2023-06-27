@@ -1,0 +1,86 @@
+---
+# When working with Dependabot and GitHub Actions, where those Actions can make
+# changes to documentation or code based on updates to the repository's
+# dependencies, it is always necessary for the pull requests to go though
+# multiple stagings using the force-ci-run label. These rules take this into
+# account and allow those stages to be managed and triggered as necessary.
+
+pull_request_rules:
+
+  # If the pull request was raised by Dependabot, and only Dependabot or GitHub
+  # Actions have make changes to the branch, then automatically approve if it's
+  # not in conflict with the base branch, and not closed.
+  - name: Automatic approval for Dependabot pull requests
+    conditions:
+      - "author=dependabot[bot]"
+      - "base=main"
+      - "#commits-behind=0"
+      - "-conflict"
+      - "-closed"
+      - or:
+          - "commits[*].author==dependabot[bot]"
+          - "commits[*].author==github-actions[bot]"
+    actions:
+      review:
+        type: APPROVE
+
+  # If a commit other than the initial commit is added to a pull request raised
+  # by Dependabot, and that commit author is GitHub Actions, and the last
+  # synchronised commit title starts with the word Syncing, then add the
+  # force-ci-run label to trigger the GitHub Workflows for this commit
+  - name: Trigger force-ci-run on GitHub Actions commits
+    conditions:
+      - "author=dependabot[bot]"
+      - "base=main"
+      - "#commits>1"
+      - "commits[-1].author=github-actions[bot]"
+      - "commits[-1].commit_message~=^Syncing"
+      - "#commits-behind=0"
+      - "-label=force-ci-run"
+      - "-conflict"
+      - "-closed"
+      - not:
+          or:
+            - check-neutral~=^Remove Label
+            - check-pending~=^Remove Label
+            - check-success~=^Remove Label
+    actions:
+      label:
+        add:
+          - "force-ci-run"
+
+  # If the pull request was raised by Dependabot, it only has a linear history,
+  # it has been approved for merging into the main or master branches, and is
+  # neither in conflict with the main branch, fallen behind, nor the
+  # force-ci-run label is still present, then automatically merge this request.
+  - name: Automatic merge for Dependabot pull requests
+    conditions:
+      - "author=dependabot[bot]"
+      - "base=main"
+      - "linear-history"
+      - "#approved-reviews-by>=1"
+      - "-label=force-ci-run"
+      - "-conflict"
+      - "-closed"
+    actions:
+      merge:
+        method: rebase
+
+  # If there is a conflict between this pull request and the default branch, or
+  # this pull request has failed behind the default branch due to other pull
+  # requests being merged before it, then add a message for Dependabot to
+  # recreate the pull request. This should be recreate rather than rebase as
+  # there may be non-dependabot changes added as commits to the branch for
+  # documentation changes. Although these non-dependabot changes will be lost,
+  # they should be re-created nonetheless.
+  - name: Trigger Dependabot to recreate on merge conflict
+    conditions:
+      - "author=dependabot[bot]"
+      - "base=main"
+      - "-closed"
+      - or:
+          - "conflict"
+          - "#commits-behind>0"
+    actions:
+      comment:
+        message: "@dependabot recreate"

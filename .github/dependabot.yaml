@@ -1,0 +1,58 @@
+---
+version: 2
+
+updates:
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: friday
+      time: "18:00"
+      timezone: "Europe/London"
+    commit-message:
+      prefix: pip
+      include: scope
+    reviewers:
+      - n3tuk/admin
+    labels:
+      - type/dependencies
+      - update/python
+      - release/chore
+      - priority/normal
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: friday
+      time: "18:00"
+      timezone: "Europe/London"
+    commit-message:
+      prefix: docker
+      include: scope
+    reviewers:
+      - n3tuk/admin
+    labels:
+      - type/dependencies
+      - update/docker
+      - release/chore
+      - priority/normal
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: thursday
+      time: "18:00"
+      timezone: "Europe/London"
+    commit-message:
+      prefix: actions
+      include: scope
+    reviewers:
+      - n3tuk/admin
+    labels:
+      - type/dependencies
+      - update/github-workflows
+      - release/chore
+      - priority/normal
