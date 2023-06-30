@@ -51,9 +51,7 @@ rm -f "${TMP}.tar.gz"
 # with preference to the local copy as so to ensure any new configuration
 # settings are set with the defaults and local overrides are kept
 show_step "Merging the upstream and downstream cookiecutter.json files"
-jq -s '.[0] * .[1]' \
-  "${TEMPLATES}/cookiecutter.json" \
-  "cookiecutter.json" \
+merge_cookiecutters "${TEMPLATES}/cookiecutter.json" "cookiecutter.json" \
   > "${TMP}/cookiecutter.json"
 # Once merged, move the configuration into the template directory so it can be
 # used to re-render the upstream templates based on the local settings (it will

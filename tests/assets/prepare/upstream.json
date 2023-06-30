@@ -1,0 +1,40 @@
+{
+  "repository": {
+    "owner": "n3tuk",
+    "name": "upstream"
+  },
+  "provider": "null",
+  "name": "module",
+  "components": {
+    "terraform": {
+      "version": "1.4.6"
+    },
+    "examples": [
+      "default",
+      "complete"
+    ],
+    "submodules": [],
+    "terratest": {
+      "options": {}
+    }
+  },
+  "changes": {
+    "updates": [
+      {
+        "source": "c.txt",
+        "destination": "d.txt"
+      }
+    ],
+    "removes": [
+      {
+        "source": "x.txt"
+      },
+      {
+        "source": "y.txt"
+      },
+      {
+        "source": "z.txt"
+      }
+    ]
+  }
+}
