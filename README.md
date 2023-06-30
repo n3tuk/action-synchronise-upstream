@@ -22,6 +22,9 @@ This GitHub Action provides the following features:
   with `.templateignore` in the root directory in the same format as
   `.gitignore`. Follow the [glob pattern][glob-pattern] in defining the files
   and folders that the action should excluded.
+- Add support for updates and removal of files inside the downstream repository
+  as configured inside the `cookiecutter.json` file, allowing easier migration
+  of existing files and removal of old files as part of standard updates.
 
 [glob-pattern]: https://en.wikipedia.org/wiki/Glob_(programming)
 
