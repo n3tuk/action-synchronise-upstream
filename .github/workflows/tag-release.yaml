@@ -1,0 +1,46 @@
+---
+name: Build Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  packages: read
+  issues: write
+
+defaults:
+  run:
+    # Error handling and pipefile must be explicitly set via the default shell
+    #   https://github.com/actions/runner/issues/353#issuecomment-1067227665
+    shell: bash --noprofile --norc -eo pipefail {0}
+
+jobs:
+
+  update-tags:
+    name: Update Major/Minor Tags
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Fetch the tags
+        run: git fetch --force --tags
+
+      - name: Force update the major tag
+        run: |
+          TAG=${GITHUB_REF/refs\/tags\//}
+          VERSION=${TAG#v}
+          MAJOR=${VERSION%%.*}
+          git tag v${MAJOR} ${TAG} -f
+          git push origin refs/tags/v${MAJOR} -f
+
+      - name: Force update the major/minor tag
+        run: |
+          TAG=${GITHUB_REF/refs\/tags\//}
+          VERSION=${TAG#v}
+          MAJOR_MINOR=${VERSION%.*}
+          git tag v${MAJOR_MINOR} ${TAG} -f
+          git push origin refs/tags/v${MAJOR_MINOR} -f
