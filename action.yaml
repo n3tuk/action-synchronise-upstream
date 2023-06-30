@@ -1,9 +1,8 @@
 ---
 name: synchronise-upstream
 description: |-
-  A GitHub Action for running synchronising template and/or configuration
-  changes from an upstream template repository into a downstream repository
-  in the n3tuk Organisation, through a pull request.
+  A GitHub Action for synchronising template changes from upstream into a
+  downstream repository through a pull request
 
 inputs:
   token:
