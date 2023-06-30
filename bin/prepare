@@ -1,0 +1,73 @@
+#! /usr/bin/env bash
+# shellcheck disable=SC1091 # Using dynamic lookups for sources files
+
+source "$(dirname "${0}")/../lib/common.sh"
+source "$(dirname "${0}")/../lib/prepare.sh"
+
+# Prepare the environment with a number of common settings or configurations
+# which need to be used across the different stages in processing upstream
+# templates into the downstream repository
+
+# Check we have everything we need in the environment
+check_variables GITHUB_TOKEN REPOSITORY BRANCH TARGET PREFIX
+check_commands curl tar gh jq
+
+COMMIT=$(get_template_commit)
+put_output commit "${COMMIT}"
+
+TMP=$(mktemp --directory --suffix=.templates)
+# Ensure we capture the name of the repository and the branch used as part of
+# the directory structure as this is set by GitHub in the archive
+TEMPLATES="${TMP}/${REPOSITORY#*/}-${BRANCH}"
+put_output templates "${TEMPLATES}"
+
+# Make sure that the git environment is configured to represent the user within
+# GitHub Actions so that the metadata is reported correctly
+start_group "Configure the git environment"
+(
+  set -x # Output the making of the settings changes rather than echo messages
+  git config --global user.name "github-actions[bot]"
+  git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+  git config --global --add safe.directory /github/workspace
+)
+end_group
+
+# Fetch the upstream templates directly from the repository as an archive rather
+# than running a full git checkout locally, as this is quicker and easier when
+# working with tokens
+start_group "Prepare the template repository"
+
+show_step "Fetching the ${BRANCH} branch archive from ${REPOSITORY}"
+curl --silent --location \
+  "https://github.com/${REPOSITORY}/archive/refs/heads/${BRANCH}.tar.gz" \
+  --header "authorization: Bearer ${GITHUB_TOKEN}" \
+  --output "${TMP}.tar.gz"
+
+show_step "Extracting the archive under ${TMP}"
+tar zxf "${TMP}.tar.gz" -C "${TMP}"
+rm -f "${TMP}.tar.gz"
+
+# Merge the upstream configuration for cookiecutter with the current local copy,
+# with preference to the local copy as so to ensure any new configuration
+# settings are set with the defaults and local overrides are kept
+show_step "Merging the upstream and downstream cookiecutter.json files"
+jq -s '.[0] * .[1]' \
+  "${TEMPLATES}/cookiecutter.json" \
+  "cookiecutter.json" \
+  > "${TMP}/cookiecutter.json"
+# Once merged, move the configuration into the template directory so it can be
+# used to re-render the upstream templates based on the local settings (it will
+# be copied back to the downstream repository once run)
+mv "${TMP}/cookiecutter.json" "${TEMPLATES}/cookiecutter.json"
+
+end_group # Preparing the template repository
+
+# Make sure the checkout action is against the target branch, not the default
+# branch which is checked out normally in GitHub Workflows
+start_group "Prepare the downstream repository"
+
+show_step "Create branch ${PREFIX}${COMMIT:0:7} from ${TARGET} to capture changes"
+git checkout -B "${PREFIX}${COMMIT:0:7}" "${TARGET}"
+show_debug "The upstream repository commit is ${COMMIT} (${COMMIT:0:7})"
+
+end_group # Prepare the downstream repository

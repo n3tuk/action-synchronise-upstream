@@ -1,0 +1,47 @@
+---
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+categories:
+  - title: "Breaking Changes"
+    labels:
+      - "release/breaking"
+  - title: "Features & Updates"
+    labels:
+      - "release/feature"
+      - "release/update"
+  - title: "Bug Fixes"
+    labels:
+      - "release/fix"
+  - title: "Maintenance"
+    collapse-after: 3
+    labels:
+      - "release/chore"
+exclude-labels:
+  - "release/skip"
+exclude-contributors:
+  - "dependabot"
+change-template: "- $TITLE ([#$NUMBER]($URL), @$AUTHOR)"
+no-changes-template: "- (No changes)"
+change-title-escapes: '\<*_&@'
+version-resolver:
+  major:
+    labels:
+      - "release/breaking"
+  minor:
+    labels:
+      - "release/feature"
+  patch:
+    labels:
+      - "release/update"
+      - "release/chore"
+      - "release/fix"
+  default: patch
+# yamllint disable rule:line-length
+template: |
+  # `$REPOSITORY` v$RESOLVED_VERSION
+
+  `$REPOSITORY` is a personal GitHub Action for synchronising upstream template changes with downstream repositories for the [`n3tuk`](https://github.com/n3tuk) Organisation.
+
+  The following is the list of the fixes, updates, and new features, against `$REPOSITORY` since [$PREVIOUS_TAG](https://github.com/$OWNER/$REPOSITORY/releases/tag/$PREVIOUS_TAG) (see [v$RESOLVED_VERSION changes after $PREVIOUS_TAG](https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION) for the detailed changelog).
+
+  $CHANGES

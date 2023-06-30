@@ -1,0 +1,25 @@
+{
+  "repository": {
+    "owner": "name",
+    "name": "name"
+  },
+  "provider": "null",
+  "name": "module",
+  "components": {
+    "terraform": {
+      "version": "1.4.6"
+    },
+    "examples": [
+      "default",
+      "complete"
+    ],
+    "submodules": [],
+    "terratest": {
+      "options": {}
+    }
+  },
+  "changes": {
+    "updates": [],
+    "removes": []
+  }
+}

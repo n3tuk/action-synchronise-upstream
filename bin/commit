@@ -1,0 +1,54 @@
+#! /usr/bin/env bash
+# shellcheck disable=SC1091 # Using dynamic lookups for sources files
+
+source "$(dirname "${0}")/../lib/common.sh"
+source "$(dirname "${0}")/../lib/commit.sh"
+
+# Assuming that there are any changes which need to be staged and committed back
+# to the downstream repository, then prepare the changes and then commit, push
+# and raise a pull request to merge them with the target branch
+
+# Check we have everything we need in the
+check_variables GITHUB_TOKEN REPOSITORY COMMIT TARGET PREFIX TITLE LABELS
+check_commands gh git
+
+# Prepare, stage, and commit the changes to the downstream repository, taking
+# into account the .templateignore file to protect any local files as needed
+start_group "Stage and commit the changes to the downstream repository"
+
+show_stage "Stage all changed files"
+git add .
+
+# Checking the ignore file (if it exists and it not empty), and then unstage any
+# files it matches and remove those changes from the local repository
+if [[ -s "${IGNORE_FILE}" ]]; then # (-s is true if the file is not empty)
+  show_stage "Unstage files listed in ${IGNORE_FILE}"
+  git reset --pathspec-from-file="${IGNORE_FILE}"
+  show_step "Clean untracked files"
+  git clean -df
+  show_step "Discard all unstaged changes"
+  git checkout -- .
+fi
+
+show_stage "Commit all staged changes"
+git commit \
+  -m "${TITLE}" \
+  -m "Synchronising upstream changes from ${REPOSITORY}@${COMMIT} with the ${TARGET} branch."
+
+end_group # Stage all changed files
+
+# Push the changes created on the local branch to the downstream repository
+start_group "Create the pull request to ${TARGET} downstream branch"
+
+show_debug "The upstream repository commit is ${COMMIT} (${COMMIT:0:7})"
+show_step "Push the ${PREFIX}${COMMIT:0:7} up to the downstream repository"
+git push --set-upstream origin "${PREFIX}${COMMIT:0:7}"
+end_group
+
+show_step "Raise a pull request for ${PREFIX}${COMMIT:0:7} to ${TARGET}"
+gh pr create \
+  --base "${TARGET}" \
+  --title "${TITLE}" \
+  --body "This pull request synchronises upstream changes from the template repository ${REPOSITORY}@${COMMIT} with the ${TARGET} downstream branch." \
+  --label "${LABELS}"
+end_group

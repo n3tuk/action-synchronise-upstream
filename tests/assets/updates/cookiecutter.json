@@ -1,0 +1,41 @@
+{
+  "repository": {
+    "owner": "name",
+    "name": "name"
+  },
+  "provider": "null",
+  "name": "module",
+  "components": {
+    "terraform": {
+      "version": "1.4.6"
+    },
+    "examples": [
+      "default",
+      "complete"
+    ],
+    "submodules": [],
+    "terratest": {
+      "options": {}
+    }
+  },
+  "changes": {
+    "updates": [
+      {
+        "source": "a.txt",
+        "destination": "b.txt"
+      },
+      {
+        "source": "b.txt",
+        "destination": "c.txt"
+      }
+    ],
+    "removes": [
+      {
+        "source": "a.txt"
+      },
+      {
+        "source": "b.txt"
+      }
+    ]
+  }
+}

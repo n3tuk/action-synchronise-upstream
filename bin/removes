@@ -1,0 +1,25 @@
+#! /usr/bin/env bash
+# shellcheck disable=SC1091 # Using dynamic lookups for sources files
+
+source "$(dirname "${0}")/../lib/common.sh"
+source "$(dirname "${0}")/../lib/removes.sh"
+
+# Iterate though the cookiecutter.json file in the upstream template repository
+# and look for matching files to delete them from the downstream repository
+
+# Check we have everything we need in the environment
+check_variables TEMPLATES
+check_commands jq
+
+start_group "Checking for files to remove"
+
+if [[ -s "${TEMPLATES}/cookiecutter.json" ]]; then
+  show_debug "Processing cookiecutter.json"
+
+  get_removes cookiecutter.json \
+    | while read -r action; do
+      do_remove "${action}"
+    done
+fi
+
+end_group

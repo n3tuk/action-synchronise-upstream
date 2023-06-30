@@ -1,0 +1,41 @@
+#! /usr/bin/env bash
+# shellcheck disable=SC1091 # Using dynamic lookups for sources files
+
+source "$(dirname "${0}")/../lib/common.sh"
+source "$(dirname "${0}")/../lib/render.sh"
+
+# Update the downstream repository based on the upstream template using
+# cookiecutter to render the templates and copy them over the top of the
+
+# Check we have everything we need in the
+check_variables TEMPLATES
+check_commands jq rsync cookiecutter
+
+# Having fetched the upstream templates and prepared the downstream repository,
+# process the templates in cookiecutter and then synchronise the changes
+start_group "Render and synchronise the cookiecutter templates"
+
+# Extract the name of the repository from the cookiecutter configuration as this
+# will be the name of the directory of the rendered files, and therefore is
+# needed to access and copy the files over the downstream repository
+NAME=$(jq -r '.repository.name' cookiecutter.json)
+show_debug "Render the templates for repo ${NAME}"
+
+show_step "Render the cookiecutter templates"
+mkdir -p render
+# Let the magic happen!
+cookiecutter "${TEMPLATES}" --no-input --output-dir render
+cp "${TEMPLATES}/cookiecutter.json" "render/${NAME}/cookiecutter.json"
+
+if [[ $(grep -c "${IGNORE_FILE}" "${IGNORE_FILE}" 2> /dev/null) -gt 0 ]]; then
+  # If there is an override in the override file, then delete the templated copy
+  # of the .templateignore file so it isn't copied across with rsync
+  show_step "Deleting rendered ${IGNORE_FILE}"
+  rm "render/${NAME}/${IGNORE_FILE}"
+fi
+
+show_step "Sync the rendered templates back into the downstream repository"
+rsync --archive --verbose "render/${NAME}/" .
+rm -rf render
+
+end_group # Render the cookiecutter templates
