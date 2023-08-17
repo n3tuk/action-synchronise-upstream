@@ -27,7 +27,7 @@ jobs:
           bats-version: 1.9.0
 
       - name: Set up BATS libraries
-        uses: brokenpip3/setup-bats-libs@1.0.0
+        uses: brokenpip3/setup-bats-libs@1.5.1
         with:
           support-install: true
           assert-install: true
