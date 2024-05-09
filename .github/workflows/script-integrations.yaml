@@ -57,7 +57,7 @@ jobs:
 
       - name: Publish the BATS summary
         id: junit-summary
-        uses: phoenix-actions/test-reporting@v14
+        uses: phoenix-actions/test-reporting@v15
         if: always()
         with:
           name: BATS Summary
@@ -68,7 +68,7 @@ jobs:
 
       - name: Publish the BATS results
         id: junit-report
-        uses: phoenix-actions/test-reporting@v14
+        uses: phoenix-actions/test-reporting@v15
         if: always()
         with:
           name: 'Scripts Integrations / BATS Results'
