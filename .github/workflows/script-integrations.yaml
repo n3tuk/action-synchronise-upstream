@@ -84,7 +84,7 @@ jobs:
           echo "See the full BATS Results Report at [GitHub Actions / Scripts Integrations / BATS Results](${{ steps.junit-report.outputs.runHtmlUrl }})" >> $GITHUB_STEP_SUMMARY
 
       - name: Save the BATS logs and reports as an artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: BATS Logs and Reports
